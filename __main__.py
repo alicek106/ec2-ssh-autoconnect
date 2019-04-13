@@ -1,5 +1,4 @@
 import awsutils
-import pprint
 import time
 import logging
 import os
@@ -33,7 +32,7 @@ class AwsEc2Manager:
 
         if self.ec2_instance_data['State']['Code'] != StatusCode.RUNNING and \
                 self.ec2_instance_data['State']['Code'] != StatusCode.STOPPED:
-            pprint.pprint('Instance is stopping or staring. Try again after few seconds.')
+            print('Instance is stopping or staring. Try again after few seconds.')
             exit(100)
 
     def _update_instance_data(self, instance_name):
@@ -71,29 +70,29 @@ class AwsEc2Manager:
 
 
 if __name__ == "__main__":
-    try:
-        flag = sys.argv[1]
-    except IndexError as e:
-        logging.error("Argument not exist. It can be 'connect' or 'stop'")
+    env_parser = EnvParser()
+    args = sys.argv
+
+    if len(args) != 3:
+        logging.error('Invalid arguments.')
+        logging.error('Usage: python __main__.py [command: connect or stop] [ec2-instance-name]')
         exit(101)
 
-    # Takes configuration from config.ini
-    env_parser = EnvParser()
     try:
-        awsEc2Manager = AwsEc2Manager(env_parser.AWS_INSTANCE_NAME)
+        awsEc2Manager = AwsEc2Manager(args[2])
     except botocore.exceptions.NoCredentialsError as e:
         logging.error('AWS Credential is not set in environment variable')
         exit(102)
 
-    if flag == 'connect':
-        logging.info('Starting EC2 instance : {}'.format(env_parser.AWS_INSTANCE_NAME))
+    if args[1] == 'connect':
+        logging.info('Starting EC2 instance : {}'.format(args[2]))
         public_ip_address = awsEc2Manager.start_instance()
         cmd = ['ssh', '-oStrictHostKeyChecking=no', 
                 '-i{}'.format(env_parser.EC2_SSH_PRIVATE_KEY), 'ubuntu@{}'.format(public_ip_address)]
         subprocess.call(cmd)
 
-    elif flag == 'stop':
-        logging.info('Stopping EC2 instance : {}'.format(env_parser.AWS_INSTANCE_NAME))
+    elif args[1] == 'stop':
+        logging.info('Stopping EC2 instance : {}'.format(args[2]))
         awsEc2Manager.stop_instance()
     else:
         logging.error("Argumeht should be 'connect' or 'stop'")
