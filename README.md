@@ -69,3 +69,28 @@ $ python __main__.py stop Test
 2019-04-13 16:07:43 INFO     Stopping EC2 instance : Test
 ```
 
+## 좀 더 쉽게 사용하기
+
+~/.bashrc, ~/.bash_profile 등에 alias를 추가해 좀 더 편하게 사용해보세요.
+
+```
+$ cat ~/.bashrc
+
+export EC2_SSH_AUTOCONNECT_DIR=/ec2-ssh-autoconnect
+alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2_SSH_AUTOCONNECT_DIR/__main__.py"
+...
+```
+
+```
+alicek106:~ alice$ ec2-connect connect Test
+
+2019-04-13 16:41:59 INFO     Found credentials in environment variables.
+2019-04-13 16:41:59 INFO     Starting EC2 instance : Test
+2019-04-13 16:41:59 INFO     EC2 instance is in active.
+Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.4.0-1079-aws x86_64)
+..
+Last login: Sat Apr 13 07:40:54 2019 from 222.117.216.29
+ubuntu@testbed:~$
+```
+
+나중에 pip로 설치할 수 있도록 변경할 예정입니다.
