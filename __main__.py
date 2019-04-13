@@ -28,14 +28,14 @@ class AwsEc2Manager:
         session = awsutils.get_session('ap-northeast-2')
         self.client = session.client('ec2')
         self.ec2_instance_name = ec2_instance_name
-        self._update_instance_data(ec2_instance_name)
+        self.__update_instance_data(ec2_instance_name)
 
         if self.ec2_instance_data['State']['Code'] != StatusCode.RUNNING and \
                 self.ec2_instance_data['State']['Code'] != StatusCode.STOPPED:
             print('Instance is stopping or staring. Try again after few seconds.')
             exit(100)
 
-    def _update_instance_data(self, instance_name):
+    def __update_instance_data(self, instance_name):
         instance_data = self.client.describe_instances(
             Filters=[
                 {'Name': 'tag:Name', 'Values': [instance_name]}
@@ -55,7 +55,7 @@ class AwsEc2Manager:
 
         for i in range(1, 30):
             time.sleep(1)
-            self._update_instance_data(self.ec2_instance_name)
+            self.__update_instance_data(self.ec2_instance_name)
             if self.ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
                 logging.info('EC2 instance is in active. Waiting for 20 seconds for warm-up.')
                 time.sleep(20)
