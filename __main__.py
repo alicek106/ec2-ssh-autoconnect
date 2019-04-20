@@ -24,7 +24,7 @@ def check_credentials():
 
 def command_start(aws_ec2_manager, arg):
     logging.info('Starting EC2 instance : {}'.format(arg))
-    aws_ec2_manager.start_instance(ec2_instance_name=arg)
+    aws_ec2_manager.start_instance(ec2_instance_names=[arg])
     public_ip_address = aws_ec2_manager.check_instance_running(ec2_instance_name=arg, max_tries=30, warmup_time=30)
 
     cmd = ['ssh', '-oStrictHostKeyChecking=no',
@@ -34,7 +34,7 @@ def command_start(aws_ec2_manager, arg):
 
 def command_stop(aws_ec2_manager, arg):
     logging.info('Stopping EC2 instance : {}'.format(arg))
-    aws_ec2_manager.stop_instance(arg)
+    aws_ec2_manager.stop_instance(ec2_instance_names=[arg])
 
 
 if __name__ == "__main__":
