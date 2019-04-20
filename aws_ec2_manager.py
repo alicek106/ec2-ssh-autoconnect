@@ -76,10 +76,16 @@ class AwsEc2Manager():
         """
 
         ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+        status = ec2_instance_data['State']['Code']
 
-        if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
+        if status == StatusCode.RUNNING:
             logging.info('EC2 instance is in active.')
             return ec2_instance_data['PublicIpAddress']
+
+        # Exception for status 'Terminating', and 'Stopping', etc.
+        elif status != StatusCode.RUNNING and status != StatusCode.STOPPED:
+            logging.error('Instance {} cannot be started. Abort'.format(ec2_instance_name))
+            exit(102)
 
         ec2_instance_id = ec2_instance_data['InstanceId']
         self.client.start_instances(InstanceIds=[ec2_instance_id])
@@ -95,6 +101,12 @@ class AwsEc2Manager():
         :param warmup_time: Seconds to wait for warm-up when EC2 instance is in active.
         :return: If succeeded to start, return Public IP. If not, return False.
         """
+
+        ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+
+        if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
+            logging.info('EC2 instance is in active.')
+            return ec2_instance_data['PublicIpAddress']
 
         for i in range(1, max_tries):
             time.sleep(1)
