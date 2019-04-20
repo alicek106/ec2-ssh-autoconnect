@@ -18,20 +18,26 @@ class AwsEc2Manager_test(unittest.TestCase):
         self.aws_ec2_manager = AwsEc2Manager()
 
     def test_start_instance(self):
+        # Alias to avoid long line :D
+        awm = self.aws_ec2_manager
+
         # Start and wait until warm-up
-        self.aws_ec2_manager.start_instance(ec2_instance_name='Test')
-        self.aws_ec2_manager.check_instance_running('Test', max_tries=20, warmup_time=20)
+        self.assertTrue(awm.start_instance(ec2_instance_name='Test'))
+        self.assertIsNot(awm.check_instance_running('Test', max_tries=20, warmup_time=20), False)
 
         # Start when instance is active
-        self.aws_ec2_manager.start_instance(ec2_instance_name='Test')
+        awm.start_instance(ec2_instance_name='Test')
 
     def test_stop_instance(self):
+        # Alias to avoid long line :D
+        awm = self.aws_ec2_manager
+
         # Stop when instance is active
-        self.aws_ec2_manager.stop_instance(ec2_instance_name='Test')
-        self.aws_ec2_manager.check_instance_stopped(ec2_instance_name='Test', max_tries=20)
+        self.assertIsNone(awm.stop_instance(ec2_instance_name='Test'))
+        self.assertTrue(awm.check_instance_stopped(ec2_instance_name='Test', max_tries=20))
 
         # Stop when instance is stop
-        self.aws_ec2_manager.stop_instance(ec2_instance_name='Test')
+        self.assertIsNone(awm.stop_instance(ec2_instance_name='Test'))
 
 
 class AwsEc2Manager():
@@ -132,7 +138,7 @@ class AwsEc2Manager():
         ec2_instance_data = self.__get_instance_data(ec2_instance_name)
         ec2_instance_id = ec2_instance_data['InstanceId']
         self.client.stop_instances(InstanceIds=[ec2_instance_id])
-        logging.error('Stopping EC2 instance {}...'.format(ec2_instance_name))
+        logging.info('Stopping EC2 instance {}...'.format(ec2_instance_name))
 
 
 if __name__ == '__main__':
