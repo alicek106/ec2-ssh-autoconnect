@@ -27,6 +27,7 @@ def command_start(aws_ec2_manager, arg):
     aws_ec2_manager.start_instance(ec2_instance_names=[arg])
     public_ip_address = aws_ec2_manager.check_instance_running(ec2_instance_name=arg, max_tries=30, warmup_time=30)
 
+    # private_key = env_parser.EC2_SSH_PRIVATE_KEY if private_key_path is not None else private_key_path
     cmd = ['ssh', '-oStrictHostKeyChecking=no',
        '-i{}'.format(env_parser.EC2_SSH_PRIVATE_KEY), 'ubuntu@{}'.format(public_ip_address)]
     subprocess.call(cmd)
@@ -37,10 +38,29 @@ def command_stop(aws_ec2_manager, arg):
     aws_ec2_manager.stop_instance(ec2_instance_names=[arg])
 
 
+def group_start(aws_ec2_manager, arg):
+    group_list = env_parser.get_group_list(arg)
+    if not group_list:
+        return
+
+    aws_ec2_manager.start_instance(group_list)
+    for instance_name in group_list:
+        aws_ec2_manager.check_instance_running(ec2_instance_name=instance_name, max_tries=30, warmup_time=30)
+
+    logging.info('All instances are ready. You can access the instances using below command \n -> ec2-connect connect [instance name]')
+
+def group_stop(aws_ec2_manager, arg):
+    group_list = env_parser.get_group_list(arg)
+    if not group_list:
+        return
+
+    aws_ec2_manager.stop_instance(group_list)
+
 if __name__ == "__main__":
     args = sys.argv
+    command = ['connect', 'stop', 'group']
 
-    if len(args) != 3:
+    if args[1] not in command:
         logging.error('Invalid arguments.')
         logging.error('Usage: python __main__.py [command: connect or stop] [ec2-instance-name]')
         exit(101)
@@ -53,13 +73,11 @@ if __name__ == "__main__":
     elif args[1] == 'stop':
         command_stop(aws_ec2_manager, args[2])
 
-    elif args[1] == 'group_start':
-        # TODO : Implement group start
-        print('group start')
-
-    elif args[1] == 'group_stop':
-        # TODO : Implement group stop
-        print('group stop')
+    elif args[1] == 'group':
+        if args[2] == 'start':
+            group_start(aws_ec2_manager, args[3])
+        elif args[2] == 'stop':
+            group_stop(aws_ec2_manager, args[3])
 
     else:
         logging.error("Argumeht should be 'connect' or 'stop'")
