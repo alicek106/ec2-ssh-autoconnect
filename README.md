@@ -37,7 +37,7 @@ $ cat config.ini
 EC2_SSH_PRIVATE_KEY = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
 ```
 
-또는, 그룹 인스턴스를 정의하려면 아래와 같이 설정할 수 있습니다. 그룹 이름은 임의로 설정할 수 있습니다.
+또는, 그룹 인스턴스를 정의하려면 아래와 같이 설정할 수 있습니다. 아래의 예시는 그룹 이름을 kube로 입력했지만, 그룹 이름은 어떤 것이 되어도 상관이 없습니다.
 
 ```
 [kube]
