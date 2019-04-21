@@ -4,6 +4,13 @@ EC2 인스턴스의 IP를 자동으로 가져와서 SSH로 연결하는 간단�
 
 AWS Management Console에 들어가서 매번 인스턴스 IP 확인하고 SSH 붙는게 너무 귀찮아서 만들었습니다.
 
+이 스크립트는 아래의 기능들을 제공합니다.
+
+- 단일 인스턴스의 시작과 동시에 SSH 접속하기
+- 단일 인스턴스를 정지하기
+- 여러 개의 인스턴스를 그룹으로 정의한 뒤, 그룹 인스턴스를 시작하기
+- 그룹 인스턴스를 단체로 정지하기
+
 ## Requirement
 
 - python, pip 3+
@@ -30,6 +37,17 @@ $ cat config.ini
 EC2_SSH_PRIVATE_KEY = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
 ```
 
+또는, 그룹 인스턴스를 정의하려면 아래와 같이 설정할 수 있습니다. 그룹 이름은 임의로 설정할 수 있습니다.
+
+```
+[kube]
+instance_list =
+    controller-etcd-0
+    worker-0
+    worker-1
+    worker-2
+```
+
 EC2 Credential 정보를 환경 변수로 설정합니다.
 
 ```
@@ -39,7 +57,7 @@ $ export AWS_SECRET_ACCESS_KEY=...
 
 ## How to use
 
-EC2 인스턴스에 접속합니다. 커맨드에는 **connect, stop**을 사용할 수 있습니다.
+EC2 인스턴스에 접속합니다. 커맨드에는 **connect, stop, group start, group stop**을 사용할 수 있습니다.
 
 ```
 $ python __main__.py [커맨드] [인스턴스 이름]
@@ -47,6 +65,7 @@ $ python __main__.py [커맨드] [인스턴스 이름]
 
 - **connect** : 인스턴스가 정지중이라면 시작한 뒤 SSH로 연결합니다.
 - **stop** : 인스턴스를 정지합니다.
+- **group start, group stop** : 그룹 인스턴스를 시작하거나 정지할 수 있습니다.
 
 사용 예시입니다. Test라는 이름의 인스턴스에 연결한 뒤 정지시킵니다.
 
@@ -69,9 +88,27 @@ $ python __main__.py stop Test
 2019-04-13 16:07:43 INFO     Stopping EC2 instance : Test
 ```
 
+또는, config.ini에 직접 정의한 그룹을 시작하거나 정지할 수도 있습니다.
+
+```
+$ python __main__.py group start kube
+2019-04-21 14:17:00 INFO     Found credentials in environment variables.
+2019-04-21 14:17:01 INFO     Starting EC2 instance controller-etcd-0...
+2019-04-21 14:17:01 INFO     Starting EC2 instance worker-0...
+2019-04-21 14:17:01 INFO     Starting EC2 instance worker-1...
+2019-04-21 14:17:02 INFO     Starting EC2 instance worker-2...
+...
+2019-04-21 14:17:49 INFO     EC2 instance is in active.
+2019-04-21 14:17:50 INFO     EC2 instance is in active.
+2019-04-21 14:17:50 INFO     All instances are ready. You can access the instances using below command
+ -> ec2-connect connect [instance name]
+```
+
+
+
 ## 좀 더 쉽게 사용하기
 
-~/.bashrc, ~/.bash_profile 등에 alias를 추가해 좀 더 편하게 사용해보세요.
+~/.bashrc, ~/.bash_profile 등에 alias를 추가해 좀 더 편하게 사용해보세요. 저는 ec2-connect로 등록해 놓고 사용하고 있습니다.
 
 ```
 $ cat ~/.bashrc
