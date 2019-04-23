@@ -37,6 +37,9 @@ def command_stop(aws_ec2_manager, arg):
     logging.info('Stopping EC2 instance : {}'.format(arg))
     aws_ec2_manager.stop_instance(ec2_instance_names=[arg])
 
+def command_list(aws_ec2_manager):
+    logging.info('List of EC2 instances : ')
+    aws_ec2_manager.print_instance_list()
 
 def group_start(aws_ec2_manager, arg):
     group_list = env_parser.get_group_list(arg)
@@ -58,7 +61,7 @@ def group_stop(aws_ec2_manager, arg):
 
 if __name__ == "__main__":
     args = sys.argv
-    command = ['connect', 'stop', 'group']
+    command = ['connect', 'stop', 'group', 'list']
 
     if args[1] not in command:
         logging.error('Invalid arguments.')
@@ -72,6 +75,9 @@ if __name__ == "__main__":
 
     elif args[1] == 'stop':
         command_stop(aws_ec2_manager, args[2])
+
+    elif args[1] == 'list':
+        command_list(aws_ec2_manager)
 
     elif args[1] == 'group':
         if args[2] == 'start':

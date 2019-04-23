@@ -17,6 +17,9 @@ class AwsEc2Manager_test(unittest.TestCase):
         warnings.filterwarnings("ignore", category=ResourceWarning, message="unclosed.*<ssl.SSLSocket.*>")
         self.aws_ec2_manager = AwsEc2Manager()
 
+    def test_get_instance_list(self):
+        self.aws_ec2_manager.print_instance_list()
+
     def test_start_instance(self):
         # Alias to avoid long line :D
         awm = self.aws_ec2_manager
@@ -152,6 +155,23 @@ class AwsEc2Manager():
             ec2_instance_id = ec2_instance_data['InstanceId']
             self.client.stop_instances(InstanceIds=[ec2_instance_id])
             logging.info('Stopping EC2 instance {}...'.format(ec2_instance_name))
+
+    def print_instance_list(self):
+        """
+        Print list of EC2 instance including status and IP
+        :return: None
+        """
+
+        response = self.client.describe_instances()
+        print('Instance Name'.ljust(30), 'IP Address'.ljust(20), 'Status'.ljust(20), sep='')
+        for instance in response['Reservations']:
+            name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Instances'][0]['Tags']))[0]
+            instance_data = self.__get_instance_data(instance_name=name_tag['Value'])
+            if instance_data['State']['Code'] != StatusCode.RUNNING:
+                print(name_tag['Value'].ljust(30), 'Unknown'.ljust(20), instance_data['State']['Name'].ljust(20),sep='')
+            else:
+                print(name_tag['Value'].ljust(30), instance_data['PublicIpAddress'].ljust(20),
+                      instance_data['State']['Name'].ljust(20),sep='')
 
 
 if __name__ == '__main__':
