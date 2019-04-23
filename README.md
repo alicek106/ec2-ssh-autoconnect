@@ -10,6 +10,7 @@ AWS Management Console에 들어가서 매번 인스턴스 IP 확인하고 SSH �
 - 단일 인스턴스를 정지하기
 - 여러 개의 인스턴스를 그룹으로 정의한 뒤, 그룹 인스턴스를 시작하기
 - 그룹 인스턴스를 단체로 정지하기
+- 인스턴스 상태, IP 출력
 
 ## Requirement
 
@@ -104,7 +105,18 @@ $ python __main__.py group start kube
  -> ec2-connect connect [instance name]
 ```
 
-
+모든 인스턴스의 상태와 IP를 출력할 수 있습니다. 이 때, 인스턴스는 고유한 Name 태그가 부여되어 있어야 합니다.
+```
+alicek106:dev alice$ ec2-connect list
+2019-04-23 13:25:06 INFO     Found credentials in environment variables.
+2019-04-23 13:25:07 INFO     List of EC2 instances :
+Instance Name                 IP Address          Status
+worker-1                      13.124.50.6         running
+controller-etcd-0             13.125.158.31       running
+worker-2                      13.125.226.103      running
+worker-0                      52.79.173.246       running
+Test                          Unknown             stopped
+```
 
 ## 좀 더 쉽게 사용하기
 
