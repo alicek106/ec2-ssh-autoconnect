@@ -4,6 +4,8 @@ EC2 인스턴스의 IP를 자동으로 가져와서 SSH로 연결하는 간단�
 
 AWS Management Console에 들어가서 매번 인스턴스 IP 확인하고 SSH 붙는게 너무 귀찮아서 만들었습니다.
 
+<p align="center"><img src="https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/pic.gif" width="70%"></p>
+
 이 스크립트는 아래의 기능들을 제공합니다.
 
 - 단일 인스턴스의 시작과 동시에 SSH 접속하기
