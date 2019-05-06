@@ -3,7 +3,7 @@ import time
 import logging
 import unittest
 import warnings
-
+import pprint
 
 class StatusCode:
     STOPPED = 80
@@ -164,14 +164,15 @@ class AwsEc2Manager():
 
         response = self.client.describe_instances()
         print('Instance Name'.ljust(30), 'IP Address'.ljust(20), 'Status'.ljust(20), sep='')
-        for instance in response['Reservations']:
-            name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Instances'][0]['Tags']))[0]
-            instance_data = self.__get_instance_data(instance_name=name_tag['Value'])
-            if instance_data['State']['Code'] != StatusCode.RUNNING:
-                print(name_tag['Value'].ljust(30), 'Unknown'.ljust(20), instance_data['State']['Name'].ljust(20),sep='')
-            else:
-                print(name_tag['Value'].ljust(30), instance_data['PublicIpAddress'].ljust(20),
-                      instance_data['State']['Name'].ljust(20),sep='')
+        for instances in response['Reservations']:
+            for instance in instances['Instances']:
+                name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Tags']))[0]
+                instance_data = self.__get_instance_data(instance_name=name_tag['Value'])
+                if instance_data['State']['Code'] != StatusCode.RUNNING:
+                    print(name_tag['Value'].ljust(30), 'Unknown'.ljust(20), instance_data['State']['Name'].ljust(20),sep='')
+                else:
+                    print(name_tag['Value'].ljust(30), instance_data['PublicIpAddress'].ljust(20),
+                        instance_data['State']['Name'].ljust(20),sep='')
 
 
 if __name__ == '__main__':
