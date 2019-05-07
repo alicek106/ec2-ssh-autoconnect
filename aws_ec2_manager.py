@@ -3,7 +3,6 @@ import time
 import logging
 import unittest
 import warnings
-import pprint
 
 class StatusCode:
     STOPPED = 80
@@ -48,14 +47,8 @@ class AwsEc2Manager():
     def __init__(self):
         session = awsutils.get_session('ap-northeast-2')
         self.client = session.client('ec2')
-        """
-        if self.ec2_instance_data['State']['Code'] != StatusCode.RUNNING and \
-                self.ec2_instance_data['State']['Code'] != StatusCode.STOPPED:
-            print('Instance is stopping or staring. Try again after few seconds.')
-            exit(100)
-        """
 
-    def __get_instance_data(self, instance_name):
+    def __get_instance_data(self, instance_id):
 
         """
         Get detailed metadata of EC2 instance.
@@ -63,6 +56,14 @@ class AwsEc2Manager():
         :return: Metadata of EC2 instance.
         """
 
+        instance_data = self.client.describe_instances(
+            Filters=[
+                {'Name': 'instance-id', 'Values': [instance_id]},
+            ],
+        )
+        return instance_data['Reservations'][0]['Instances'][0]
+
+    def __get_instance_data_by_name(self, instance_name):
         instance_data = self.client.describe_instances(
             Filters=[
                 {'Name': 'tag:Name', 'Values': [instance_name]}
@@ -79,7 +80,7 @@ class AwsEc2Manager():
         """
 
         for ec2_instance_name in ec2_instance_names:
-            ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
             status = ec2_instance_data['State']['Code']
 
             if status == StatusCode.RUNNING:
@@ -106,7 +107,7 @@ class AwsEc2Manager():
         :return: If succeeded to start, return Public IP. If not, return False.
         """
 
-        ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+        ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
 
         if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
             logging.info('EC2 instance is in active.')
@@ -114,7 +115,7 @@ class AwsEc2Manager():
 
         for i in range(1, max_tries):
             time.sleep(1)
-            ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
 
             if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
                 logging.info('EC2 instance is in active. Waiting for {} seconds for warm-up.'.format(warmup_time))
@@ -124,6 +125,19 @@ class AwsEc2Manager():
             logging.info('Waiting for starting EC2 instance.. {} tries'.format(i))
         logging.error('Failed to start EC2 instance. Max tries : {}'.format(max_tries))
         return False
+
+    def stop_instance(self, ec2_instance_names):
+
+        """
+        Stop EC2 instance.
+        :param ec2_instance_name: Target EC2 instance to stop.
+        :return: None
+        """
+        for ec2_instance_name in ec2_instance_names:
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
+            ec2_instance_id = ec2_instance_data['InstanceId']
+            self.client.stop_instances(InstanceIds=[ec2_instance_id])
+            logging.info('Stopping EC2 instance {}...'.format(ec2_instance_name))
 
     def check_instance_stopped(self, ec2_instance_name, max_tries):
 
@@ -136,25 +150,12 @@ class AwsEc2Manager():
 
         for i in range(1, max_tries):
             time.sleep(1)
-            ec2_instance_data = self.__get_instance_data(ec2_instance_name)
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
             if ec2_instance_data['State']['Code'] == StatusCode.STOPPED:
                 return True
             logging.info('Waiting for stopping EC2 instance.. {} tries'.format(i))
         logging.error('Failed to wait stopping EC2 instance. Max tries : {}'.format(max_tries))
         return False
-
-    def stop_instance(self, ec2_instance_names):
-
-        """
-        Stop EC2 instance.
-        :param ec2_instance_name: Target EC2 instance to stop.
-        :return: None
-        """
-        for ec2_instance_name in ec2_instance_names:
-            ec2_instance_data = self.__get_instance_data(ec2_instance_name)
-            ec2_instance_id = ec2_instance_data['InstanceId']
-            self.client.stop_instances(InstanceIds=[ec2_instance_id])
-            logging.info('Stopping EC2 instance {}...'.format(ec2_instance_name))
 
     def print_instance_list(self):
         """
@@ -163,16 +164,28 @@ class AwsEc2Manager():
         """
 
         response = self.client.describe_instances()
-        print('Instance Name'.ljust(30), 'IP Address'.ljust(20), 'Status'.ljust(20), sep='')
-        for instances in response['Reservations']:
-            for instance in instances['Instances']:
+        name_width = 20 # Default Name label tag width
+        instance_list = []
+        for instance_group in response['Reservations']:
+            for instance in instance_group['Instances']:
+                name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Tags']))[0]['Value']
+                name_width = max(name_width, len(name_tag) + 5) # If any instance has long name
+                instance_list.append(instance)
+
+        instance_list = sorted(instance_list, key=lambda k: k['State']['Code'])
+
+        print('Instance ID'.ljust(25), 'Instance Name'.ljust(name_width), 'IP Address'.ljust(20), 'Status'.ljust(20), sep='')
+        for instance in instance_list:
+            instance_id = instance['InstanceId']
+            try:
                 name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Tags']))[0]
-                instance_data = self.__get_instance_data(instance_name=name_tag['Value'])
-                if instance_data['State']['Code'] != StatusCode.RUNNING:
-                    print(name_tag['Value'].ljust(30), 'Unknown'.ljust(20), instance_data['State']['Name'].ljust(20),sep='')
-                else:
-                    print(name_tag['Value'].ljust(30), instance_data['PublicIpAddress'].ljust(20),
-                        instance_data['State']['Name'].ljust(20),sep='')
+            except Exception:
+                name_tag = {'Value':'<No Name Tag>'}
+
+            instance_data = self.__get_instance_data(instance_id=instance_id)
+            ip_address = instance_data['PublicIpAddress'] if instance_data['State']['Code'] == StatusCode.RUNNING else 'Unknown'
+            print(instance_id.ljust(25), name_tag['Value'].ljust(name_width), ip_address.ljust(20),
+                  instance_data['State']['Name'].ljust(20), sep='')
 
 
 if __name__ == '__main__':
