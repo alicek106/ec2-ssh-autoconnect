@@ -47,6 +47,7 @@ class AwsEc2Manager():
     def __init__(self):
         session = awsutils.get_session('ap-northeast-2')
         self.client = session.client('ec2')
+        self.client.describe_instances() # Triggers NoCredentialsError Exception
 
     def __get_instance_data(self, instance_id):
 
