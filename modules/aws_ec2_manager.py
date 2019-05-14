@@ -15,7 +15,7 @@ class AwsEc2Manager():
         self.client = session.client('ec2')
         self.client.describe_instances() # Triggers NoCredentialsError Exception
 
-    def __get_instance_data(self, instance_id):
+    def __get_instance_data_by_id(self, instance_id):
 
         """
         Get detailed metadata of EC2 instance.
@@ -135,7 +135,10 @@ class AwsEc2Manager():
         instance_list = []
         for instance_group in response['Reservations']:
             for instance in instance_group['Instances']:
-                name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Tags']))[0]['Value']
+                try:
+                    name_tag = list(filter(lambda d: d['Key'] == 'Name', instance['Tags']))[0]['Value']
+                except KeyError:
+                    pass
                 name_width = max(name_width, len(name_tag) + 5) # If any instance has long name
                 instance_list.append(instance)
 
@@ -149,7 +152,7 @@ class AwsEc2Manager():
             except Exception:
                 name_tag = {'Value':'<No Name Tag>'}
 
-            instance_data = self.__get_instance_data(instance_id=instance_id)
+            instance_data = self.__get_instance_data_by_id(instance_id=instance_id)
             ip_address = instance_data['PublicIpAddress'] if instance_data['State']['Code'] == StatusCode.RUNNING else 'Unknown'
             print(instance_id.ljust(25), name_tag['Value'].ljust(name_width), ip_address.ljust(20),
                   instance_data['State']['Name'].ljust(20), sep='')
