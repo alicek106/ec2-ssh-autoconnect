@@ -21,9 +21,9 @@ class CommandProcessor:
             logging.error('AWS Credential is not set in environment variable')
             exit(102)
 
-    def command_start(self, aws_ec2_manager, arg):
+    def command_connect(self, aws_ec2_manager, arg):
         logging.info('Starting EC2 instance : {}'.format(arg))
-        aws_ec2_manager.start_instance(ec2_instance_names=[arg])
+        aws_ec2_manager.start_instances(ec2_instance_names=[arg])
         public_ip_address = aws_ec2_manager.check_instance_running(ec2_instance_name=arg, max_tries=30, warmup_time=30)
 
         # private_key = env_parser.EC2_SSH_PRIVATE_KEY if private_key_path is not None else private_key_path
@@ -31,10 +31,13 @@ class CommandProcessor:
            '-i{}'.format(self.env_parser.EC2_SSH_PRIVATE_KEY), 'ubuntu@{}'.format(public_ip_address)]
         subprocess.call(cmd)
 
+    def command_start(self, aws_ec2_manager, arg):
+        logging.info('Starting EC2 instance : {}'.format(arg))
+        aws_ec2_manager.start_instances(ec2_instance_names=[arg])
 
     def command_stop(self, aws_ec2_manager, arg):
         logging.info('Stopping EC2 instance : {}'.format(arg))
-        aws_ec2_manager.stop_instance(ec2_instance_names=[arg])
+        aws_ec2_manager.stop_instances(ec2_instance_names=[arg])
 
     def command_list(self, aws_ec2_manager):
         logging.info('List of EC2 instances : ')
@@ -45,7 +48,7 @@ class CommandProcessor:
         if not group_list:
             return
 
-        aws_ec2_manager.start_instance(group_list)
+        aws_ec2_manager.start_instances(group_list)
         for instance_name in group_list:
             aws_ec2_manager.check_instance_running(ec2_instance_name=instance_name, max_tries=30, warmup_time=30)
 
@@ -56,4 +59,4 @@ class CommandProcessor:
         if not group_list:
             return
 
-        aws_ec2_manager.stop_instance(group_list)
+        aws_ec2_manager.stop_instances(group_list)

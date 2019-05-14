@@ -4,7 +4,7 @@ import sys
 
 if __name__ == "__main__":
     args = sys.argv
-    command = ['connect', 'stop', 'group', 'list']
+    command = ['connect', 'start', 'stop', 'group', 'list']
 
     if args[1] not in command:
         logging.error('Invalid arguments.')
@@ -15,6 +15,9 @@ if __name__ == "__main__":
     aws_ec2_manager = command_processor.check_credentials()
 
     if args[1] == 'connect':
+        command_processor.command_connect(aws_ec2_manager, args[2])
+
+    elif args[1] == 'start':
         command_processor.command_start(aws_ec2_manager, args[2])
 
     elif args[1] == 'stop':

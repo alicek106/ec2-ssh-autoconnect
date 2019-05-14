@@ -38,7 +38,7 @@ class AwsEc2Manager():
         )
         return instance_data['Reservations'][0]['Instances'][0]
 
-    def start_instance(self, ec2_instance_names):
+    def start_instances(self, ec2_instance_names):
 
         """
         Start EC2 instances.
@@ -93,7 +93,7 @@ class AwsEc2Manager():
         logging.error('Failed to start EC2 instance. Max tries : {}'.format(max_tries))
         return False
 
-    def stop_instance(self, ec2_instance_names):
+    def stop_instances(self, ec2_instance_names):
 
         """
         Stop EC2 instance.
