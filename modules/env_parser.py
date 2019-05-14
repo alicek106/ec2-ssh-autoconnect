@@ -1,5 +1,4 @@
 import configparser
-import os
 import unittest
 import logging
 
@@ -9,8 +8,7 @@ class EnvParser:
 
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
-
+        self.config.read('/etc/ec2_connect_config.ini')
         self.EC2_SSH_PRIVATE_KEY = self.config['CONFIG']['EC2_SSH_PRIVATE_KEY']
 
     def get_group_list(self, group_name):
