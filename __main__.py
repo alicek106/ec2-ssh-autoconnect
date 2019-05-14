@@ -33,5 +33,5 @@ if __name__ == "__main__":
             command_processor.group_stop(aws_ec2_manager, args[3])
 
     else:
-        logging.error("Argumeht should be 'connect' or 'stop'")
+        logging.error("Argumeht should be 'connect', 'start' or 'stop'")
         exit(101)

@@ -17,7 +17,7 @@ class AwsEc2Manager_test(unittest.TestCase):
 
         # Start and wait until warm-up
         self.assertTrue(awm.start_instances(ec2_instance_names=['Test']))
-        self.assertIsNot(awm.check_instance_running(ec2_instance_name='Test', max_tries=20, warmup_time=20), False)
+        self.assertIsInstance(awm.check_instance_running(ec2_instance_name='Test', max_tries=20, warmup_time=20), str)
 
         # Start when instance is active
         awm.start_instances(ec2_instance_names=['Test'])

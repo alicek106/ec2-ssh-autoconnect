@@ -36,7 +36,7 @@ class AwsEc2Manager():
                 {'Name': 'tag:Name', 'Values': [instance_name]}
             ]
         )
-        return instance_data['Reservations'][0]['Instances'][0]
+        return instance_data['Reservations']
 
     def start_instances(self, ec2_instance_names):
 
@@ -48,20 +48,25 @@ class AwsEc2Manager():
 
         for ec2_instance_name in ec2_instance_names:
             ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
-            status = ec2_instance_data['State']['Code']
+            # for each Reservations[0], Reservations[1] ... (e.g. instances which have same tag:Name)
+            for instances in ec2_instance_data:
+                # for each instance when EC2 instances are created at the same time (e.g. by AWS Web UI)
+                for instance in instances['Instances']:
+                    status = instance['State']['Code']
 
-            if status == StatusCode.RUNNING:
-                logging.info('EC2 instance is in active.')
-                return ec2_instance_data['PublicIpAddress']
+                    if status == StatusCode.RUNNING:
+                        logging.info('EC2 instance is in active.')
+                        continue
+                        # return ec2_instance_data['PublicIpAddress']
 
-            # Exception for status 'Terminating', and 'Stopping', etc.
-            elif status != StatusCode.RUNNING and status != StatusCode.STOPPED:
-                logging.error('Instance {} cannot be started. Abort'.format(ec2_instance_name))
-                exit(102)
+                    # Exception for status 'Terminating', and 'Stopping', etc.
+                    elif status != StatusCode.RUNNING and status != StatusCode.STOPPED:
+                        logging.error('Instance {} cannot be started. Abort'.format(ec2_instance_name))
+                        exit(102)
 
-            ec2_instance_id = ec2_instance_data['InstanceId']
-            self.client.start_instances(InstanceIds=[ec2_instance_id])
-            logging.info('Starting EC2 instance {}...'.format(ec2_instance_name))
+                    ec2_instance_id = instance['InstanceId']
+                    self.client.start_instances(InstanceIds=[ec2_instance_id])
+                    logging.info('Starting EC2 instance {} (instance ID : {})...'.format(ec2_instance_name, ec2_instance_id))
         return True
 
     def check_instance_running(self, ec2_instance_name, max_tries, warmup_time):
@@ -74,15 +79,19 @@ class AwsEc2Manager():
         :return: If succeeded to start, return Public IP. If not, return False.
         """
 
+        # For only one instance (For a instance that has unique tag:Name)
         ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
+        if len(ec2_instance_data) > 1 or len(ec2_instance_data[0]['Instances']) > 1:
+            return -1
 
+        ec2_instance_data = ec2_instance_data[0]['Instances'][0]
         if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
             logging.info('EC2 instance is in active.')
             return ec2_instance_data['PublicIpAddress']
 
         for i in range(1, max_tries):
             time.sleep(1)
-            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)[0]['Instances'][0]
 
             if ec2_instance_data['State']['Code'] == StatusCode.RUNNING:
                 logging.info('EC2 instance is in active. Waiting for {} seconds for warm-up.'.format(warmup_time))
@@ -91,7 +100,7 @@ class AwsEc2Manager():
 
             logging.info('Waiting for starting EC2 instance.. {} tries'.format(i))
         logging.error('Failed to start EC2 instance. Max tries : {}'.format(max_tries))
-        return False
+        return -2
 
     def stop_instances(self, ec2_instance_names):
 
@@ -102,9 +111,13 @@ class AwsEc2Manager():
         """
         for ec2_instance_name in ec2_instance_names:
             ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
-            ec2_instance_id = ec2_instance_data['InstanceId']
-            self.client.stop_instances(InstanceIds=[ec2_instance_id])
-            logging.info('Stopping EC2 instance {}...'.format(ec2_instance_name))
+            # for each Reservations[0], Reservations[1] ... (e.g. instances which have same tag:Name)
+            for instances in ec2_instance_data:
+                # for each instance when EC2 instances are created at the same time (e.g. by AWS Web UI)
+                for instance in instances['Instances']:
+                    ec2_instance_id = instance['InstanceId']
+                    self.client.stop_instances(InstanceIds=[ec2_instance_id])
+                    logging.info('Stopping EC2 instance {} (Instance ID : {})...'.format(ec2_instance_name, ec2_instance_id))
 
     def check_instance_stopped(self, ec2_instance_name, max_tries):
 
@@ -115,9 +128,10 @@ class AwsEc2Manager():
         :return: If succeeded to stop, return True. If not, return False.
         """
 
+        # For only one instance (For a instance that has unique tag:Name)
         for i in range(1, max_tries):
             time.sleep(1)
-            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)
+            ec2_instance_data = self.__get_instance_data_by_name(ec2_instance_name)[0]['Instances'][0]
             if ec2_instance_data['State']['Code'] == StatusCode.STOPPED:
                 return True
             logging.info('Waiting for stopping EC2 instance.. {} tries'.format(i))

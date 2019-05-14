@@ -25,6 +25,9 @@ class CommandProcessor:
         logging.info('Starting EC2 instance : {}'.format(arg))
         aws_ec2_manager.start_instances(ec2_instance_names=[arg])
         public_ip_address = aws_ec2_manager.check_instance_running(ec2_instance_name=arg, max_tries=30, warmup_time=30)
+        if public_ip_address is -1:
+            logging.error('You are trying to connect the instances which have same tag:Name')
+            return
 
         # private_key = env_parser.EC2_SSH_PRIVATE_KEY if private_key_path is not None else private_key_path
         cmd = ['ssh', '-oStrictHostKeyChecking=no',
