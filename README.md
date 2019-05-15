@@ -1,27 +1,28 @@
 # SSH Auto Connector for EC2 Instance
 
-EC2 인스턴스의 IP를 자동으로 가져와서 SSH로 연결하는 간단한 스크립트입니다.
+Simple commands which connects to AWS EC2 Instances! 
 
-AWS Management Console에 들어가서 매번 인스턴스 IP 확인하고 SSH 붙는게 너무 귀찮아서 만들었습니다.
+You don't need to check your changed EC2 instance IP anymore. Just use **'ec2-connect'**
 
 <p align="center"><img src="https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/pic.gif" width="70%"></p>
 
-이 스크립트는 아래의 기능들을 제공합니다.
+# 1. Features
 
-- 단일 인스턴스의 시작과 동시에 SSH 접속하기
-- 단일 인스턴스를 정지하기
-- 여러 개의 인스턴스를 그룹으로 정의한 뒤, 그룹 인스턴스를 시작하기
-- 그룹 인스턴스를 단체로 정지하기
-- 인스턴스 상태, IP 출력
+Features that this script provide is..
 
-## Requirement
+- Start and stop a EC2 instance
+- Start and stop multiple EC2 instances as a group
+- **Connect SSH to a EC2 instance automatically**
+- List all EC2 instances
+
+# 2. Requirements
 
 - python, pip 3+
 - virtualenv (optional)
 
-## Install
+# 3. Install
 
-이 리포지터리를 내려받습니다.
+Clone this repository and install required packages. You can use virtualenv for it.
 
 ```
 $ git clone https://github.com/alicek106/ec2-ssh-autoconnect.git && \
@@ -31,98 +32,34 @@ $ git clone https://github.com/alicek106/ec2-ssh-autoconnect.git && \
     pip install -r requirements.txt
 ```
 
-config.ini 파일에서 EC2 인스턴스에 접근할 SSH 비밀 키의 경로를 설정합니다.
+Create configuration file as **/etc/ec2_connect_config.ini** like below.
 
 ```
-$ cat config.ini
-
+$ cat /etc/ec2_connect_config.ini
 [CONFIG]
 EC2_SSH_PRIVATE_KEY = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
-```
 
-또는, 그룹 인스턴스를 정의하려면 아래와 같이 설정할 수 있습니다. 아래의 예시는 그룹 이름을 kube로 입력했지만, 그룹 이름은 어떤 것이 되어도 상관이 없습니다.
-
-```
-[kube]
+[kubeadm]
 instance_list =
-    controller-etcd-0
-    worker-0
-    worker-1
-    worker-2
+    kubeadm-master
+    kubeadm-worker1
+    kubeadm-worker2
+    kubeadm-worker0
 ```
 
-EC2 Credential 정보를 환경 변수로 설정합니다.
+Configuration file contains..
+
+- Path of EC2 private key when used to connect SSH to EC2 instance. 
+- Custom groups of EC2 instances (optional)
+
+After that, set AWS credentials in bash. It can also be set by ~/.aws/credentials 
 
 ```
 $ export AWS_ACCESS_KEY_ID=...
 $ export AWS_SECRET_ACCESS_KEY=...
 ```
 
-## How to use
-
-EC2 인스턴스에 접속합니다. 커맨드에는 **connect, stop, group start, group stop**을 사용할 수 있습니다.
-
-```
-$ python __main__.py [커맨드] [인스턴스 이름]
-```
-
-- **connect** : 인스턴스가 정지중이라면 시작한 뒤 SSH로 연결합니다.
-- **stop** : 인스턴스를 정지합니다.
-- **group start, group stop** : 그룹 인스턴스를 시작하거나 정지할 수 있습니다.
-
-사용 예시입니다. Test라는 이름의 인스턴스에 연결한 뒤 정지시킵니다.
-
-```
-$ python __main__.py connect Test
-
-...
-2019-04-13 16:05:10 INFO     Found credentials in environment variables.
-2019-04-13 16:05:11 INFO     Starting EC2 instance : Test
-2019-04-13 16:05:11 INFO     EC2 instance is in active.
-
-Last login: Sat Apr 13 06:55:32 2019 from <DETACTED>
-ubuntu@testbed:~$
-```
-
-```
-$ python __main__.py stop Test
-
-2019-04-13 16:07:42 INFO     Found credentials in environment variables.
-2019-04-13 16:07:43 INFO     Stopping EC2 instance : Test
-```
-
-또는, config.ini에 직접 정의한 그룹을 시작하거나 정지할 수도 있습니다.
-
-```
-$ python __main__.py group start kube
-2019-04-21 14:17:00 INFO     Found credentials in environment variables.
-2019-04-21 14:17:01 INFO     Starting EC2 instance controller-etcd-0...
-2019-04-21 14:17:01 INFO     Starting EC2 instance worker-0...
-2019-04-21 14:17:01 INFO     Starting EC2 instance worker-1...
-2019-04-21 14:17:02 INFO     Starting EC2 instance worker-2...
-...
-2019-04-21 14:17:49 INFO     EC2 instance is in active.
-2019-04-21 14:17:50 INFO     EC2 instance is in active.
-2019-04-21 14:17:50 INFO     All instances are ready. You can access the instances using below command
- -> ec2-connect connect [instance name]
-```
-
-모든 인스턴스의 상태와 IP를 출력할 수 있습니다. 이 때, 인스턴스는 고유한 Name 태그가 부여되어 있어야 합니다.
-```
-alicek106:dev alice$ ec2-connect list
-2019-04-23 13:25:06 INFO     Found credentials in environment variables.
-2019-04-23 13:25:07 INFO     List of EC2 instances :
-Instance Name                 IP Address          Status
-worker-1                      13.124.50.6         running
-controller-etcd-0             13.125.158.31       running
-worker-2                      13.125.226.103      running
-worker-0                      52.79.173.246       running
-Test                          Unknown             stopped
-```
-
-## 좀 더 쉽게 사용하기
-
-~/.bashrc, ~/.bash_profile 등에 alias를 추가해 좀 더 편하게 사용해보세요. 저는 ec2-connect로 등록해 놓고 사용하고 있습니다.
+Add ec2-connect command as alias in ~/.bashrc. It will be replaced as a pip install later. Please set proper path as EC2_SSH_AUTOCONNECT_DIR to your directory (git clone path).
 
 ```
 $ cat ~/.bashrc
@@ -132,16 +69,84 @@ alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2
 ...
 ```
 
-```
-alicek106:~ alice$ ec2-connect connect Test
 
-2019-04-13 16:41:59 INFO     Found credentials in environment variables.
-2019-04-13 16:41:59 INFO     Starting EC2 instance : Test
-2019-04-13 16:41:59 INFO     EC2 instance is in active.
-Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.4.0-1079-aws x86_64)
-..
-Last login: Sat Apr 13 07:40:54 2019 from 222.117.216.29
-ubuntu@testbed:~$
-```
 
-나중에 pip로 설치할 수 있도록 변경할 예정입니다.
+# 4. How to use (Easy!)
+
+1. Check EC2 instance list using **ec2-connect list**
+
+   ```
+   $ ec2-connect list
+   2019-05-15 12:11:16 INFO     Found credentials in environment variables.
+   2019-05-15 12:11:17 INFO     List of EC2 instances :
+   Instance ID              Instance Name       IP Address          Status
+   i-0994dac6654fd59e1      Test                52.79.236.231       running
+   i-04b2ad71fcbdae8c1      kubeadm-worker1     Unknown             stopped
+   i-0f24c89be31ea8bc2      kubeadm-master      Unknown             stopped
+   i-04c77d71fb7ac7867      kubeadm-worker0     Unknown             stopped
+   i-0d27c6c0ed423f903      kubeadm-worker2     Unknown             stopped
+   ```
+
+2. Connect to EC2 instance by **ec2-connect connect [EC2 instance name]**. This command uses private key defined in /etc/ec2_connect_config.ini
+
+   ```
+   $ ec2-connect connect Test
+   2019-05-15 12:11:21 INFO     Found credentials in environment variables.
+   2019-05-15 12:11:21 INFO     Starting EC2 instance : Test
+   2019-05-15 12:11:21 INFO     EC2 instance is in active.
+   2019-05-15 12:11:21 INFO     EC2 instance is in active.
+   Warning: Permanently added '52.79.236.231' (ECDSA) to the list of known hosts.
+   Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.4.0-1079-aws x86_64)
+   ...
+   New release '18.04.2 LTS' available.
+   Run 'do-release-upgrade' to upgrade to it.
+   
+   
+   Last login: Tue May 14 13:46:24 2019 from 222.117.216.29
+   ubuntu@testbed:~$ 
+   ```
+
+   > **Tip** : If a instance is in STOP, 'connect' command automatically start that instance and connect SSH. So you don't need to command 'start' actually. Just use **connect**!
+
+3. Stop EC2 instance by **ec2-connect stop [EC2 instance name]**
+
+   ```
+   $ ec2-connect stop Test
+   2019-05-15 12:28:36 INFO     Found credentials in environment variables.
+   2019-05-15 12:28:36 INFO     Stopping EC2 instance : Test
+   2019-05-15 12:28:36 INFO     Stopping EC2 instance Test (Instance ID : i-0994dac6654fd59e1)...
+   ```
+
+4. If you defined **custom group** in /etc/ec2_connect_config.ini, you can use 'group start' or 'group stop'
+
+   ```
+   $ ec2-connect group start kubeadm
+   2019-05-15 12:39:58 INFO     Found credentials in environment variables.
+   2019-05-15 12:39:59 INFO     Starting EC2 instance kubeadm-master (instance ID : ..)
+   2019-05-15 12:40:00 INFO     Starting EC2 instance kubeadm-worker1 (instance ID : ..)
+   2019-05-15 12:40:00 INFO     Starting EC2 instance kubeadm-worker2 (instance ID : ..)
+   2019-05-15 12:40:00 INFO     Starting EC2 instance kubeadm-worker0 (instance ID : ..)
+   ```
+
+   ```
+   $ ec2-connect group stop kubeadm
+   2019-05-15 12:41:11 INFO     Found credentials in environment variables.
+   2019-05-15 12:41:12 INFO     Stopping EC2 instance kubeadm-master (Instance ID : ..)
+   2019-05-15 12:41:12 INFO     Stopping EC2 instance kubeadm-worker1 (Instance ID : ..)
+   2019-05-15 12:41:13 INFO     Stopping EC2 instance kubeadm-worker2 (Instance ID : ..)
+   2019-05-15 12:41:13 INFO     Stopping EC2 instance kubeadm-worker0 (Instance ID : ..)
+   ```
+
+# 5. Disclaimers
+
+- Is it possible to use multiple private key?
+
+  -> It will be supported later :D
+
+- It seems that this script uses instance name (tag:Name). What happens when there are multiple instances which have same tag:Name?
+
+  -> 'ec2-connect start' and 'ec2-connect stop' commands control **instances, not a instance.** For example, if you have instances A and A (but different instance ID), and try to 'ec2-connect start A', it will start both instance at the same time. But **if you try to 'ec2-connect connect A', it will fail**. I recommand to use 'ec2-connect connect' command when each instance has unique tag:Name. Later, SSH connect by instance ID will be supported.
+
+- Do I have to set AWS credentials variable in bash shell manually? 
+
+  -> Actually, I came up with to use credentials by defining in /etc/ec2_connect_config.ini at first. But I think It is not safe to save credentials in that file :D It is possible to update, but maybe later. 
