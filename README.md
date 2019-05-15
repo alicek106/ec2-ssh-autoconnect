@@ -87,7 +87,14 @@ alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2
    i-0d27c6c0ed423f903      kubeadm-worker2     Unknown             stopped
    ```
 
-2. Connect to EC2 instance by **ec2-connect connect [EC2 instance name]**. This command uses private key defined in /etc/ec2_connect_config.ini
+2. Start EC2 instance using **ec2-connect start**
+   ```
+   $ ec2-connect start Test
+   2019-05-15 13:04:10 INFO     Found credentials in environment variables.
+   2019-05-15 13:04:10 INFO     Starting EC2 instance : Test
+   2019-05-15 13:04:11 INFO     Starting EC2 instance Test (instance ID : i-0994dac6654fd59e1)...
+   ```
+3. Connect to EC2 instance by **ec2-connect connect [EC2 instance name]**. This command uses private key defined in /etc/ec2_connect_config.ini
 
    ```
    $ ec2-connect connect Test
@@ -108,7 +115,7 @@ alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2
 
    > **Tip** : If a instance is in STOP, 'connect' command automatically start that instance and connect SSH. So you don't need to command 'start' actually. Just use **connect**!
 
-3. Stop EC2 instance by **ec2-connect stop [EC2 instance name]**
+4. Stop EC2 instance by **ec2-connect stop [EC2 instance name]**
 
    ```
    $ ec2-connect stop Test
@@ -117,7 +124,7 @@ alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2
    2019-05-15 12:28:36 INFO     Stopping EC2 instance Test (Instance ID : i-0994dac6654fd59e1)...
    ```
 
-4. If you defined **custom group** in /etc/ec2_connect_config.ini, you can use 'group start' or 'group stop'
+5. If you defined **custom group** in /etc/ec2_connect_config.ini, you can use 'group start' or 'group stop'
 
    ```
    $ ec2-connect group start kubeadm
