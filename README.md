@@ -6,6 +6,8 @@ You don't need to check your changed EC2 instance IP anymore. Just use **'ec2-co
 
 <p align="center"><img src="https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/pic.gif" width="70%"></p>
 
+한국어 버전 README은 [여기](https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/README-korean.md)에서 확인해 주세요.
+
 # 1. Features
 
 Features that this script provide is..
