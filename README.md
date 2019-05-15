@@ -69,7 +69,10 @@ alias ec2-connect="$EC2_SSH_AUTOCONNECT_DIR/ec2-ssh-autoconnect/bin/python3 $EC2
 ...
 ```
 
-
+Apply ~/.bashrc file.
+```
+$ source ~/.bashrc
+```
 
 # 4. How to use (Easy!)
 
