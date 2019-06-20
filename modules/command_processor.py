@@ -21,7 +21,7 @@ class CommandProcessor:
             logging.error('AWS Credential is not set in environment variable')
             exit(102)
 
-    def command_connect(self, aws_ec2_manager, arg):
+    def command_connect(self, aws_ec2_manager, arg, key):
         logging.info('Starting EC2 instance : {}'.format(arg))
         aws_ec2_manager.start_instances(ec2_instance_names=[arg])
         public_ip_address = aws_ec2_manager.check_instance_running(ec2_instance_name=arg, max_tries=30, warmup_time=30)
@@ -30,8 +30,13 @@ class CommandProcessor:
             return
 
         # private_key = env_parser.EC2_SSH_PRIVATE_KEY if private_key_path is not None else private_key_path
-        cmd = ['ssh', '-oStrictHostKeyChecking=no',
-           '-i{}'.format(self.env_parser.EC2_SSH_PRIVATE_KEY), 'ubuntu@{}'.format(public_ip_address)]
+        if key == None:
+            cmd = ['ssh', '-oStrictHostKeyChecking=no',
+               '-i{}'.format(self.env_parser.EC2_SSH_PRIVATE_KEY_DEFAULT), 'ubuntu@{}'.format(public_ip_address)]
+        else:
+            key_path = self.env_parser.get_key_path(key.split('=')[1])
+            cmd = ['ssh', '-oStrictHostKeyChecking=no',
+                   '-i{}'.format(key_path), 'ubuntu@{}'.format(public_ip_address)]
         subprocess.call(cmd)
 
     def command_start(self, aws_ec2_manager, arg):

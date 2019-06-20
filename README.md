@@ -39,7 +39,8 @@ Create configuration file as **/etc/ec2_connect_config.ini** like below.
 ```
 $ cat /etc/ec2_connect_config.ini
 [CONFIG]
-EC2_SSH_PRIVATE_KEY = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
+EC2_SSH_PRIVATE_KEY_DEFAULT = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
+mykey = /Users/alice/Desktop/dev/keys/mykey.pem
 
 [kubeadm]
 instance_list =
@@ -120,6 +121,10 @@ $ source ~/.bashrc
 
    > **Tip** : If a instance is in STOP, 'connect' command automatically start that instance and connect SSH. So you don't need to command 'start' actually. Just use **connect**!
 
+   Or, you can use user-defined key in ec2_connect_config.ini by specifying --key. By default, this script uses EC2_SSH_PRIVATE_KEY_DEFAULT in config file.
+      ```
+   $ ec2-connect connect Test --key=mykey
+   ```
 4. Stop EC2 instance by **ec2-connect stop [EC2 instance name]**
 
    ```
@@ -153,7 +158,7 @@ $ source ~/.bashrc
 
 - Is it possible to use multiple private key?
 
-  -> It will be supported later :D
+  -> Updated :D
 
 - It seems that this script uses instance name (tag:Name). What happens when there are multiple instances which have same tag:Name?
 

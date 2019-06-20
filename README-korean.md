@@ -37,7 +37,8 @@ $ git clone https://github.com/alicek106/ec2-ssh-autoconnect.git && \
 ```
 $ cat /etc/ec2_connect_config.ini
 [CONFIG]
-EC2_SSH_PRIVATE_KEY = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
+EC2_SSH_PRIVATE_KEY_DEFAULT = /Users/alice/Desktop/dev/keys/DockerEngineTestInstance.pem
+mykey = /Users/alice/Desktop/dev/keys/mykey.pem
 
 [kubeadm]
 instance_list =
@@ -122,7 +123,11 @@ $ source ~/.bashrc
    ```
 
    > **Tip** : 인스턴스가 정지 상태에 있을 때 'connect' 명령어로 SSH 접근을 시도할 경우, 자동으로 인스턴스를 시작한 뒤 SSH 접속이 수행됩니다. 따라서 SSH로 붙어야 할 필요가 있을 때는 'start' 명령어를 사용할 필요가 없습니다.
-
+   
+   또는 --key=mykey와 같이 옵션을 정의함으로써 기본 키 외의 다른 키를 사용할 수도 있습니다. 아래의 예시는 설정 파일에 mykey를 정의한 경우이며, --key를 사용하지 않으면 EC2_SSH_PRIVATE_KEY_DEFAULT 항목을 읽어들여 사용합니다.
+      ```
+   $ ec2-connect connect Test --key=mykey
+   ```
 4. **ec2-connect stop [EC2 instance name]** 명령어로 EC2 인스턴스를 정지할 수 있습니다.
 
    ```
@@ -156,7 +161,7 @@ $ source ~/.bashrc
 
 - 비밀 키를 여러 개 사용하는건 안되나요?
 
-  -> 나중에 지원하도록 업데이트 하겠습니다 :D
+  -> 업데이트 되었습니다 :D
 
 - 이 명령어 스크립트는 인스턴스 이름을 사용하는 것 같은데 (tag:Name), 만약 같은 이름을 가지는 여러 개의 인스턴스가 존재하면 어떻게 되죠?
 

@@ -4,12 +4,18 @@ import logging
 
 class EnvParser:
     ENV_BLACK_LIST = ('DEFAULT', 'CONFIG') # Immutable values
-    EC2_SSH_PRIVATE_KEY = None
+    EC2_SSH_PRIVATE_KEY_DEFAULT = None
+    EC2_SSH_PRIVATE_KEY_LIST = {}
 
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read('/etc/ec2_connect_config.ini')
-        self.EC2_SSH_PRIVATE_KEY = self.config['CONFIG']['EC2_SSH_PRIVATE_KEY']
+        self.EC2_SSH_PRIVATE_KEY_DEFAULT = self.config['CONFIG']['EC2_SSH_PRIVATE_KEY_DEFAULT']
+        for key, value in self.config.items('CONFIG'):
+            self.EC2_SSH_PRIVATE_KEY_LIST[key] = value
+
+    def get_key_path(self, key_name):
+        return self.EC2_SSH_PRIVATE_KEY_LIST[key_name]
 
     def get_group_list(self, group_name):
         if group_name not in self.config:
