@@ -10,8 +10,11 @@ class StatusCode:
 
 class AwsEc2Manager():
 
-    def __init__(self):
-        session = awsutils.get_session('ap-northeast-2')
+    def __init__(self, data=None):
+        if data != None:
+            session = awsutils.get_session_with_key('ap-northeast-2', data)
+        else:
+            session = awsutils.get_session('ap-northeast-2')
         self.client = session.client('ec2')
         self.client.describe_instances() # Triggers NoCredentialsError Exception
 

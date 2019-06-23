@@ -17,9 +17,18 @@ class CommandProcessor:
     def check_credentials(self):
         try:
             return AwsEc2Manager()
+        except botocore.exceptions.ClientError as e:
+            logging.error("Invalid credentials")
+            exit(103)
         except botocore.exceptions.NoCredentialsError as e:
             logging.error('AWS Credential is not set in environment variable')
-            exit(102)
+            data = self.env_parser.get_ec2_access_key()
+            if data == None:
+                logging.error("Access key is not specified in config file.")
+                exit(102)
+            else:
+                logging.info("Found access key in config file.")
+                return AwsEc2Manager(data)
 
     def command_connect(self, aws_ec2_manager, arg, key):
         logging.info('Starting EC2 instance : {}'.format(arg))

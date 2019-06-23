@@ -14,6 +14,14 @@ class EnvParser:
         for key, value in self.config.items('CONFIG'):
             self.EC2_SSH_PRIVATE_KEY_LIST[key] = value
 
+    def get_ec2_access_key(self):
+
+        if self.config.has_option('CONFIG', 'AWS_ACCESS_KEY_ID') and self.config.has_option('CONFIG', 'AWS_SECRET_ACCESS_KEY'):
+            return (self.config['CONFIG']['AWS_ACCESS_KEY_ID'],
+                    self.config['CONFIG']['AWS_SECRET_ACCESS_KEY'])
+        else:
+            return None
+
     def get_key_path(self, key_name):
         return self.EC2_SSH_PRIVATE_KEY_LIST[key_name]
 
