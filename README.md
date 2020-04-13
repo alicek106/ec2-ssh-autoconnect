@@ -7,6 +7,7 @@ You don't need to check your changed EC2 instance IP anymore. Just use **'ec2-co
 <p align="center"><img src="https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/pic.gif" width="70%"></p>
 
 한국어 버전 README은 [여기](https://github.com/alicek106/ec2-ssh-autoconnect/blob/master/README-korean.md)에서 확인해 주세요. 속도를 개선한 [Go 구현 버전](https://github.com/alicek106/go-ec2-ssh-autoconnect)도 있습니다. 
+This repository has been moved to [https://github.com/alicek106/go-ec2-ssh-autoconnect](https://github.com/alicek106/go-ec2-ssh-autoconnect). Please use go implementation. (it's faster!)
 
 # 1. Features
 
